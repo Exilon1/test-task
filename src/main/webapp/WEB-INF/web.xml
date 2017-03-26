@@ -20,6 +20,6 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>Vaadin Application Servlet</servlet-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/test</url-pattern>
     </servlet-mapping>
 </web-app>
