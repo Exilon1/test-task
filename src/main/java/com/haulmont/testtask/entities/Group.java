@@ -1,13 +1,16 @@
-package com.haulmont.testtask.core;
+package com.haulmont.testtask.entities;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 /**
  * Created by Alexey on 25.03.2017.
  */
+@NamedQueries({
+        @NamedQuery(name = "findAllGroups", query = "select g from Group g")
+})
+
 @Entity
+@Table(name="EDU_GROUP")
 public class Group {
 
     @Id @GeneratedValue
@@ -45,5 +48,10 @@ public class Group {
 
     public void setFaculty(String faculty) {
         this.faculty = faculty;
+    }
+
+    @Override
+    public String toString() {
+        return faculty + ": " + number;
     }
 }

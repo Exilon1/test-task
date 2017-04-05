@@ -1,20 +1,17 @@
 package com.haulmont.testtask;
 
-import com.haulmont.testtask.core.Group;
-import com.haulmont.testtask.core.Student;
+import com.haulmont.testtask.entities.Group;
+import com.haulmont.testtask.entities.Student;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
+import javax.persistence.*;
 
 /**
  * Created by Alexey on 26.03.2017.
  */
 public class Main {
 
-    public static void main(String[] args) {
-        EntityManagerFactory emf = Persistence
+    public static void main(String[] args) {}
+  /*      EntityManagerFactory emf = Persistence
                 .createEntityManagerFactory("com.haulmont");
         EntityManager em = emf.createEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -26,6 +23,21 @@ public class Main {
         em.persist(student);
         em.persist(group);
         tx.commit();
-    }
 
+     //   tx.begin();
+        TypedQuery<Student> query = em.createNamedQuery("findAllStudents", Student.class);
+        System.out.println("args = [" + query.getSingleResult().getFirstName() + "]");
+        query.getSingleResult().setFirstName("11");
+     //   tx.commit();
+
+    //    tx.begin();
+        System.out.println("args = [" + em.find(Student.class, query.getSingleResult().getId()).getFirstName() + "]");
+     //   tx.commit();
+
+        em.close();
+        emf.close();
+
+        System.out.println("args = [" + em + " " + emf + "]");
+    }
+*/
 }

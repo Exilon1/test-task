@@ -5,9 +5,14 @@ import com.haulmont.testtask.entities.Group;
 import com.haulmont.testtask.entities.Student;
 import com.vaadin.data.Binder;
 import com.vaadin.data.provider.DataProvider;
+import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.ui.*;
+import com.vaadin.ui.components.grid.HeaderRow;
+import com.vaadin.ui.themes.ValoTheme;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Created by Alexey on 01.04.2017.
@@ -22,13 +27,14 @@ public class ComponentCreator {
     private static Binder<Student> studentBinder = new Binder<>();
     private static Window addEditGroupWindow;
     private static Window addEditStudentWindow;
+    private HeaderRow studentGridTopHeader;
 
-
-    public VerticalLayout createGroupTable() {
+    public VerticalLayout createGroupTableLayout() {
         VerticalLayout verticalLayout = new VerticalLayout();
         HorizontalLayout horizontalLayout = new HorizontalLayout();
-
         Button add = new Button("Добавить", clickEvent -> {
+            if(!addEditGroupWindow.isAttached())
+                UI.getCurrent().addWindow(addEditGroupWindow);
             groupBinder.setBean(new Group());
             addEditGroupWindow.setVisible(true);
         });
@@ -37,6 +43,8 @@ public class ComponentCreator {
             if (g == null)
                 Notification.show("No selected group!");
             else {
+                if(!addEditGroupWindow.isAttached())
+                    UI.getCurrent().addWindow(addEditGroupWindow);
                 groupBinder.setBean(g);
                 addEditGroupWindow.setVisible(true);
             }
@@ -46,7 +54,11 @@ public class ComponentCreator {
             if (g == null)
                 Notification.show("No selected group!");
             else {
-                jpaCrud.removeEntity(g);
+                try {
+                    jpaCrud.removeEntity(g);
+                } catch (IllegalStateException e) {
+                    Notification.show(e.getMessage());
+                }
                 refreshGroupGrig(jpaCrud.findAllGroups());
             }
         });
@@ -69,11 +81,13 @@ public class ComponentCreator {
         return verticalLayout;
     }
 
-    public VerticalLayout createStudentTable() {
+    public VerticalLayout createStudentTableLayout() {
         VerticalLayout verticalLayout = new VerticalLayout();
         HorizontalLayout horizontalLayout = new HorizontalLayout();
 
         Button add = new Button("Добавить", clickEvent -> {
+            if(!addEditStudentWindow.isAttached())
+                UI.getCurrent().addWindow(addEditStudentWindow);
             studentBinder.setBean(new Student());
             addEditStudentWindow.setVisible(true);
         });
@@ -82,6 +96,8 @@ public class ComponentCreator {
             if (s == null)
                 Notification.show("No selected student!");
             else {
+                if(!addEditStudentWindow.isAttached())
+                    UI.getCurrent().addWindow(addEditStudentWindow);
                 studentBinder.setBean(s);
                 addEditStudentWindow.setVisible(true);
             }
@@ -91,7 +107,11 @@ public class ComponentCreator {
             if (s == null)
                 Notification.show("No selected student!");
             else {
-                jpaCrud.removeEntity(s);
+                try {
+                    jpaCrud.removeEntity(s);
+                } catch (IllegalStateException e) {
+                    Notification.show(e.getMessage());
+                }
                 refreshStudentGrig(jpaCrud.findAllStudents());
              }
         });
@@ -103,7 +123,6 @@ public class ComponentCreator {
         studentGrid = new Grid<Student>("Students");
         studentGrid.setSizeFull();
         studentGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        //   HeaderRow topHeader = grid.prependHeaderRow();
         studentGrid.addColumn(Student::getFirstName)
                 .setId("FirstNameColumn")
                 .setCaption("First Name");
@@ -119,14 +138,16 @@ public class ComponentCreator {
         studentGrid.addColumn(Student::getGroup)
                 .setId("GroupColumn")
                 .setCaption("Group");
+        studentGridTopHeader = studentGrid.appendHeaderRow();
+
         verticalLayout.addComponent(studentGrid);
         return verticalLayout;
     }
 
-    public Window createAddEditGroupLayout() {
+    public Window createAddEditGroupWindow() {
         addEditGroupWindow = new Window("Edit group");
 
-        VerticalLayout formLayout = new VerticalLayout ();
+        FormLayout formLayout = new FormLayout();
         TextField faculty = new TextField("Faculty:");
         TextField number = new TextField("Number:");
 
@@ -148,14 +169,13 @@ public class ComponentCreator {
                 .bind(Group::getNumber, Group::setNumber);
 
         Button okButton = new Button("Ok", clickEvent -> {
-            jpaCrud.createOrUpdate(groupBinder.getBean());
-            refreshGroupGrig(jpaCrud.findAllGroups());
-            addEditGroupWindow.setVisible(false);
+            if(groupBinder.validate().isOk()) {
+                jpaCrud.createOrUpdate(groupBinder.getBean());
+                refreshGroupGrig(jpaCrud.findAllGroups());
+                addEditGroupWindow.setVisible(false);
+            }
         });
         Button cancelButton = new Button("Отменить", clickEvent -> addEditGroupWindow.setVisible(false));
-
-        groupBinder.addStatusChangeListener(
-                event -> okButton.setEnabled(groupBinder.isValid()));
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         horizontalLayout.addComponent(okButton);
@@ -163,55 +183,88 @@ public class ComponentCreator {
 
         formLayout.addComponent(horizontalLayout);
 
-     //   formLayout.setSizeUndefined();
-    //    formLayout.setMargin(true);
         addEditGroupWindow.setContent(formLayout);
         addEditGroupWindow.setModal(true);
         addEditGroupWindow.setVisible(false);
         return addEditGroupWindow;
     }
 
-    public Window createAddEditStudentLayout() {
+    public Window createAddEditStudentWindow() {
         addEditStudentWindow = new Window("Edit student");
-        VerticalLayout verticalLayout = new VerticalLayout();
 
+        FormLayout formLayout = new FormLayout();
         TextField firstName = new TextField("First Name:");
         TextField lastName = new TextField("Last Name:");
         TextField middleName = new TextField("Middle Name:");
         DateField dob = new DateField("Date of Birth:");
         NativeSelect<Group> group = new NativeSelect("Group:", jpaCrud.findAllGroups());
 
+        Label firstNameValidation = new Label();
+        Label lastNameValidation = new Label();
+        Label middleNameValidation = new Label();
+        Label dobValidation = new Label();
+        Label groupValidation = new Label();
+
+        formLayout.addComponent(firstName);
+        formLayout.addComponent(firstNameValidation);
+        formLayout.addComponent(lastName);
+        formLayout.addComponent(lastNameValidation);
+        formLayout.addComponent(middleName);
+        formLayout.addComponent(middleNameValidation);
+        formLayout.addComponent(dob);
+        formLayout.addComponent(dobValidation);
+        formLayout.addComponent(group);
+        formLayout.addComponent(groupValidation);
+
         studentBinder.forField(firstName)
                 .asRequired("First Name may not be empty")
+                .withValidator(
+                        fName -> Pattern.matches("\\D+", fName),
+                        "Name must not contain numerical")
+                .withStatusLabel(firstNameValidation)
                 .bind(Student::getFirstName, Student::setFirstName);
         studentBinder.forField(lastName)
                 .asRequired("Last Name may not be empty")
+                .withValidator(
+                        lName -> Pattern.matches("\\D+", lName),
+                        "Name must not contain numerical")
+                .withStatusLabel(lastNameValidation)
                 .bind(Student::getLastName, Student::setLastName);
         studentBinder.forField(middleName)
                 .asRequired("Middle Name may not be empty")
+                .withValidator(
+                        mName -> Pattern.matches("\\D+", mName),
+                        "Name must not contain numerical")
+                .withStatusLabel(middleNameValidation)
                 .bind(Student::getMiddleName, Student::setMiddleName);
         studentBinder.forField(dob)
                 .asRequired("Date of Birth may not be empty")
+                .withValidator(
+                        localDate -> localDate.isBefore(LocalDate.now()),
+                        "Date of Birth must not be in future")
+                .withStatusLabel(dobValidation)
                 .bind(Student::getDob, Student::setDob);
         studentBinder.forField(group)
                 .asRequired("Group may not be empty")
+                .withStatusLabel(groupValidation)
                 .bind(Student::getGroup, Student::setGroup);
 
-        Button ok = new Button("Ok", clickEvent -> {
-            jpaCrud.createOrUpdate(studentBinder.getBean());
-            refreshStudentGrig(jpaCrud.findAllStudents());
-            addEditStudentWindow.setVisible(false);
+        Button okButton = new Button("Ok", clickEvent -> {
+            if(studentBinder.validate().isOk()) {
+                jpaCrud.createOrUpdate(studentBinder.getBean());
+                refreshStudentGrig(jpaCrud.findAllStudents());
+                addEditStudentWindow.setVisible(false);
+            }
         });
-        Button cancel = new Button("Отменить", clickEvent -> addEditStudentWindow.setVisible(false));
+        Button cancelButton = new Button("Отменить", clickEvent -> addEditStudentWindow.setVisible(false));
 
-        verticalLayout.addComponent(firstName);
-        verticalLayout.addComponent(lastName);
-        verticalLayout.addComponent(middleName);
-        verticalLayout.addComponent(dob);
-        verticalLayout.addComponent(group);
-        verticalLayout.addComponent(ok);
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        horizontalLayout.addComponent(okButton);
+        horizontalLayout.addComponent(cancelButton);
 
-        addEditStudentWindow.setContent(verticalLayout);
+        formLayout.addComponent(horizontalLayout);
+
+        addEditStudentWindow.setContent(formLayout);
         addEditStudentWindow.setModal(true);
         addEditStudentWindow.setVisible(false);
         return addEditStudentWindow;
@@ -222,18 +275,59 @@ public class ComponentCreator {
     }
 
     public void refreshStudentGrig(List<Student> studentList) {
-        studentGrid.setDataProvider(DataProvider.ofCollection(studentList));
+        ListDataProvider<Student> dataProvider = DataProvider.ofCollection(studentList);
+        studentGridTopHeader.getCell("LastNameColumn").setComponent(createLastNameFilter(dataProvider));
+        studentGridTopHeader.getCell("GroupColumn").setComponent(createGroupNumberFilter(dataProvider));
+        studentGrid.setDataProvider(dataProvider);
     }
 
-    public Group getSelectedGroup() {
+    private Group getSelectedGroup() {
         for(Group g: groupGrid.getSelectedItems())
             return g;
         return null;
     }
 
-    public Student getSelectedStudent() {
+    private Student getSelectedStudent() {
         for(Student s: studentGrid.getSelectedItems())
             return s;
         return null;
+    }
+
+    private TextField createLastNameFilter(ListDataProvider<Student> dataProvider) {
+        TextField filter = getTextField();
+        filter.addValueChangeListener(event -> {
+            dataProvider.setFilter(Student::getLastName, lastName -> {
+                if (lastName == null) {
+                    return false;
+                }
+                String lastNameLower = lastName.toLowerCase();
+                String filterLower = event.getValue().toLowerCase();
+                return lastNameLower.contains(filterLower);
+            });
+        });
+        return filter;
+    }
+
+    private TextField createGroupNumberFilter(ListDataProvider<Student> dataProvider) {
+        TextField filter = getTextField();
+        filter.addValueChangeListener(event -> {
+            dataProvider.setFilter(Student::getGroup, group -> {
+                if (group == null) {
+                    return false;
+                }
+                String numberLower = group.getNumber().toLowerCase();
+                String filterLower = event.getValue().toLowerCase();
+                return numberLower.contains(filterLower);
+            });
+        });
+        return filter;
+    }
+
+    private TextField getTextField() {
+        TextField filter = new TextField();
+        filter.setWidth("100%");
+        filter.addStyleName(ValoTheme.TEXTFIELD_TINY);
+        filter.setPlaceholder("Filter");
+        return filter;
     }
 }

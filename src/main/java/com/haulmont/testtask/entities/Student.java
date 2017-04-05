@@ -1,29 +1,33 @@
-package com.haulmont.testtask.core;
+package com.haulmont.testtask.entities;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+
 
 /**
  * Created by Alexey on 25.03.2017.
  */
-@NamedQuery(name = "findAll", query = "select s from Student s")
+@NamedQuery(name = "findAllStudents", query = "select s from Student s")
 @Entity
+@Table(name="STUDENT")
 public class Student {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
     private String firstName;
     private String lastName;
     private String middleName;
-    private String dob;
-    @OneToOne
-//    @JoinColumn(name = "group_fk")
+    private LocalDate dob;
+    @ManyToOne()
+    @JoinColumn(name = "group_fk")
     private Group group;
 
 
     public Student() {
     }
 
-    public Student(String firstName, String lastName, String middleName, String dob, Group group) {
+    public Student(String firstName, String lastName, String middleName, LocalDate dob, Group group) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.middleName = middleName;
@@ -63,11 +67,11 @@ public class Student {
         this.middleName = middleName;
     }
 
-    public String getDob() {
+    public LocalDate getDob() {
         return dob;
     }
 
-    public void setDob(String dob) {
+    public void setDob(LocalDate dob) {
         this.dob = dob;
     }
 
@@ -78,4 +82,5 @@ public class Student {
     public void setGroup(Group group) {
         this.group = group;
     }
+
 }
