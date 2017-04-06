@@ -1,0 +1,5 @@
+insert into group (number, faculty) values ('P1', 'Physics')
+insert into group (number, faculty) values ('M2', 'Math')
+insert into group (number, faculty) values ('S3', 'Science')
+insert into group (number, faculty) values ('G4', 'Genetic')
+insert into group (number, faculty) values ('C5', 'Chemical')

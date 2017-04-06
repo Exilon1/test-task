@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Alexey on 01.04.2017.
  */
-public class ComponentCreator {
+public class ComponentContainer {
 
     private static JpaCrud jpaCrud = JpaCrud.getInstance();
 
@@ -28,8 +28,22 @@ public class ComponentCreator {
     private static Window addEditGroupWindow;
     private static Window addEditStudentWindow;
     private HeaderRow studentGridTopHeader;
+    private NativeSelect<Group> groupNativeSelect;
 
-    public VerticalLayout createGroupTableLayout() {
+    public TabSheet createMainTabSheet() {
+        TabSheet mainTabSheet = new TabSheet();
+        mainTabSheet.setSizeFull();
+
+        VerticalLayout studentLayout = createStudentTableLayout();
+        VerticalLayout groupLayout = createGroupTableLayout();
+
+        mainTabSheet.addTab(studentLayout, "Студенты");
+        mainTabSheet.addTab(groupLayout, "Группы");
+
+        return mainTabSheet;
+    }
+
+    private VerticalLayout createGroupTableLayout() {
         VerticalLayout verticalLayout = new VerticalLayout();
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         Button add = new Button("Добавить", clickEvent -> {
@@ -70,7 +84,6 @@ public class ComponentCreator {
         groupGrid = new Grid<>("Groups");
         groupGrid.setSizeFull();
         groupGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        //   HeaderRow topHeader = grid.prependHeaderRow();
         groupGrid.addColumn(Group::getFaculty)
                 .setId("FacultyColumn")
                 .setCaption("Faculty");
@@ -81,7 +94,7 @@ public class ComponentCreator {
         return verticalLayout;
     }
 
-    public VerticalLayout createStudentTableLayout() {
+    private VerticalLayout createStudentTableLayout() {
         VerticalLayout verticalLayout = new VerticalLayout();
         HorizontalLayout horizontalLayout = new HorizontalLayout();
 
@@ -197,7 +210,7 @@ public class ComponentCreator {
         TextField lastName = new TextField("Last Name:");
         TextField middleName = new TextField("Middle Name:");
         DateField dob = new DateField("Date of Birth:");
-        NativeSelect<Group> group = new NativeSelect("Group:", jpaCrud.findAllGroups());
+        groupNativeSelect = new NativeSelect("Group:", jpaCrud.findAllGroups());
 
         Label firstNameValidation = new Label();
         Label lastNameValidation = new Label();
@@ -213,7 +226,7 @@ public class ComponentCreator {
         formLayout.addComponent(middleNameValidation);
         formLayout.addComponent(dob);
         formLayout.addComponent(dobValidation);
-        formLayout.addComponent(group);
+        formLayout.addComponent(groupNativeSelect);
         formLayout.addComponent(groupValidation);
 
         studentBinder.forField(firstName)
@@ -244,7 +257,7 @@ public class ComponentCreator {
                         "Date of Birth must not be in future")
                 .withStatusLabel(dobValidation)
                 .bind(Student::getDob, Student::setDob);
-        studentBinder.forField(group)
+        studentBinder.forField(groupNativeSelect)
                 .asRequired("Group may not be empty")
                 .withStatusLabel(groupValidation)
                 .bind(Student::getGroup, Student::setGroup);
@@ -271,7 +284,9 @@ public class ComponentCreator {
     }
 
     public void refreshGroupGrig(List<Group> groupList) {
-        groupGrid.setDataProvider(DataProvider.ofCollection(groupList));
+        ListDataProvider<Group> dataProvider = DataProvider.ofCollection(groupList);
+        groupNativeSelect.setDataProvider(dataProvider);
+        groupGrid.setDataProvider(dataProvider);
     }
 
     public void refreshStudentGrig(List<Student> studentList) {
