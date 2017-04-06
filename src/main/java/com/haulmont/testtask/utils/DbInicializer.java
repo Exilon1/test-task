@@ -1,4 +1,4 @@
-package com.haulmont.testtask.view;
+package com.haulmont.testtask.utils;
 
 import com.haulmont.testtask.dao.JpaCrud;
 import com.haulmont.testtask.entities.Group;

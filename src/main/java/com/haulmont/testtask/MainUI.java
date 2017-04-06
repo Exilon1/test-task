@@ -1,17 +1,12 @@
 package com.haulmont.testtask;
 
 import com.haulmont.testtask.dao.JpaCrud;
-import com.haulmont.testtask.entities.Group;
-import com.haulmont.testtask.entities.Student;
 import com.haulmont.testtask.view.ComponentContainer;
-import com.haulmont.testtask.view.DbInicializer;
+import com.haulmont.testtask.utils.DbInicializer;
 import com.vaadin.annotations.Theme;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.time.LocalDate;
-import java.time.Month;
 
 
 @Theme(ValoTheme.THEME_NAME)
