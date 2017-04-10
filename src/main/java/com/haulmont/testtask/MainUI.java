@@ -17,7 +17,7 @@ public class MainUI extends UI {
     @Override
     protected void init(VaadinRequest request) {
         jpaCrud.connect();
-        DbInicializer.initDb();
+    //    DbInicializer.initDb();
 
         ComponentContainer componentContainer = new ComponentContainer();
 

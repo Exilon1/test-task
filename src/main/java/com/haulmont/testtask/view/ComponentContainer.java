@@ -196,6 +196,8 @@ public class ComponentContainer {
 
         formLayout.addComponent(horizontalLayout);
 
+        formLayout.setMargin(true);
+        formLayout.setSizeUndefined();
         addEditGroupWindow.setContent(formLayout);
         addEditGroupWindow.setModal(true);
         addEditGroupWindow.setVisible(false);
@@ -277,6 +279,8 @@ public class ComponentContainer {
 
         formLayout.addComponent(horizontalLayout);
 
+        formLayout.setMargin(true);
+        formLayout.setSizeUndefined();
         addEditStudentWindow.setContent(formLayout);
         addEditStudentWindow.setModal(true);
         addEditStudentWindow.setVisible(false);
